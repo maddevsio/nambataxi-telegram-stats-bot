@@ -1,9 +1,0 @@
-2017/11/20 20:14:55 Authorized on account iihcaoedbot
-2017/11/20 20:14:55 getUpdates {"ok":true,"result":[{"update_id":224650305,
-"message":{"message_id":1,"from":{"id":7110815,"is_bot":false,"first_name":"\ud83e\udd18","username":"MadDevs"},"chat":{"id":-290811477,"title":"stat","type":"group","all_members_are_administrators":true},"date":1511187273,"group_chat_created":true}}]}
-2017/11/20 20:14:55 getUpdates req : map[timeout:[60]]
-2017/11/20 20:14:55 getUpdates resp: [{UpdateID:224650305 Message:0xc4200905a0 EditedMessage:<nil> ChannelPost:<nil> EditedChannelPost:<nil> InlineQuery:<nil> ChosenInlineResult:<nil> CallbackQuery:<nil>}]
-2017/11/20 20:14:55 [MadDevs]
-2017/11/20 20:14:56 sendMessage {"ok":false,"error_code":400,"description":"Bad Request: message text is empty"}
-^Csignal: interrupt
-make: *** [run] Error 1
