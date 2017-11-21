@@ -8,11 +8,13 @@ import (
 )
 
 func TestRequest(t *testing.T) {
-	config := sc.NewSimpleConfig("./config", "yml")
-	url := config.GetString("url")
-	log.Print(url)
+	config    := sc.NewSimpleConfig("./config", "yml")
+	url       := config.GetString("url")
 	resp, err := resty.R().Get(url)
+
 	checkErr(err)
+
+	log.Print(url)
 	log.Print(resp)
 }
 
