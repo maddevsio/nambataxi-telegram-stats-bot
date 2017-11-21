@@ -1,16 +1,18 @@
 package main
 
 import (
-	"testing"
-	"log"
-	"gopkg.in/resty.v1"
+	"time"
 	"encoding/json"
 	sc "github.com/maddevsio/simple-config"
+	"gopkg.in/resty.v1"
+	"log"
+	"testing"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestRequest(t *testing.T) {
-	config    := sc.NewSimpleConfig("./config", "yml")
-	url       := config.GetString("url")
+	config := sc.NewSimpleConfig("./config", "yml")
+	url := config.GetString("url")
 	resp, err := resty.R().Get(url)
 
 	checkErr(err)
@@ -20,24 +22,17 @@ func TestRequest(t *testing.T) {
 }
 
 type logData struct {
-	Target string `json:"target"`
+	Target     string      `json:"target"`
 	Datapoints [][]float64 `json:"datapoints"`
 }
 
-func TestParseResult(t *testing.T) {
-	config    := sc.NewSimpleConfig("./config", "yml")
-	url       := config.GetString("url")
-	resp, err := resty.R().Get(url)
-
-	checkErr(err)
-
+func GetMaxDataFromJSON(raw string) int {
 	var data []logData
-	_ = json.Unmarshal([]byte(resp.String()), &data)
+	_ = json.Unmarshal([]byte(raw), &data)
 
 	var picked []int
 	var max int
 	for _, v := range data[0].Datapoints {
-		log.Print(v[0])
 		if v[0] > 0 {
 			if int(v[0]) > max {
 				max = int(v[0])
@@ -45,8 +40,23 @@ func TestParseResult(t *testing.T) {
 			picked = append(picked, int(v[0]))
 		}
 	}
-	log.Print(picked)
-	log.Print(max)
+	return max
+}
+
+func TestParseResult(t *testing.T) {
+	config := sc.NewSimpleConfig("./config", "yml")
+	url := config.GetString("url")
+	resp, err := resty.R().Get(url)
+
+	checkErr(err)
+
+	log.Print(GetMaxDataFromJSON(resp.String()))
+}
+
+func TestGetDataDayBefore(t *testing.T) {
+	timeForTest := time.Date(2017,11,1,0,0,0,0,time.UTC)
+	dayBefore := GetDayBeforeInFormat(timeForTest)
+	assert.Equal(t, "20171031", dayBefore)
 }
 
 func checkErr(err error) {

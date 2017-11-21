@@ -1,10 +1,15 @@
 package main
 
 import (
-	"log"
 	sc "github.com/maddevsio/simple-config"
 	"gopkg.in/telegram-bot-api.v4"
+	"log"
+	"time"
 )
+
+func GetDayBeforeInFormat(t time.Time) string {
+    return t.AddDate(0, 0, -1).Format("20060102")
+}
 
 func main() {
 	config := sc.NewSimpleConfig("./config", "yml")
