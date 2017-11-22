@@ -2,7 +2,6 @@ package main
 
 import (
 	"time"
-	sc "github.com/maddevsio/simple-config"
 	"gopkg.in/resty.v1"
 	"log"
 	"testing"
@@ -10,23 +9,16 @@ import (
 )
 
 func TestRequest(t *testing.T) {
-	config := sc.NewSimpleConfig("./config", "yml")
-	url := config.GetString("url")
-	resp, err := resty.R().Get(url)
-
+	config.Fill("./config", "yaml")
+	resp, err := resty.R().Get(config.Url)
 	checkErr(err)
-
 	assert.Equal(t, "200 OK", resp.Status())
-
 }
 
 func TestParseResult(t *testing.T) {
-	config := sc.NewSimpleConfig("./config", "yml")
-	url := config.GetString("url")
-	resp, err := resty.R().Get(url)
-
+	config.Fill("./config", "yaml")
+	resp, err := resty.R().Get(config.Url)
 	checkErr(err)
-
 	log.Print(GetMaxDataFromJSON(resp.String()))
 }
 

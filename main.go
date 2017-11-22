@@ -13,6 +13,21 @@ type logData struct {
     Datapoints [][]float64 `json:"datapoints"`
 }
 
+type Config struct {
+    Url    string
+    Token  string
+    ChatID int64
+}
+
+func (cs *Config) Fill(configFile string, configExt string) {
+    c         := sc.NewSimpleConfig(configFile, configExt)
+    cs.Url    = c.GetString("url")
+    cs.Token  = c.GetString("token")
+    cs.ChatID = int64(c.Get("chatid").(int))
+}
+
+var config = Config{}
+
 func GetDayBeforeInFormat(t time.Time) string {
     return t.AddDate(0, 0, -1).Format("20060102")
 }
@@ -35,16 +50,12 @@ func GetMaxDataFromJSON(raw string) int {
 }
 
 func main() {
-	config := sc.NewSimpleConfig("./config", "yml")
-	token  := config.GetString("token")
-	chatid := int64(config.Get("chatid").(int))
-
-	bot, err := tgbotapi.NewBotAPI(token)
+	config.Fill("./config", "yml")
+	bot, err := tgbotapi.NewBotAPI(config.Token)
 	checkErr(err)
 	log.Printf("Authorized on account %s", bot.Self.UserName)
 	bot.Debug = true
-
-	msg := tgbotapi.NewMessage(chatid, "Hello")
+	msg := tgbotapi.NewMessage(config.ChatID, "Hello")
 	bot.Send(msg)
 }
 
