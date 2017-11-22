@@ -1,12 +1,17 @@
 package main
 
 import (
+	"fmt"
 	"time"
 	"gopkg.in/resty.v1"
-	"log"
 	"testing"
 	"github.com/stretchr/testify/assert"
 )
+
+func TestGetMaxForDateAndTarget(t *testing.T) {
+	config.Fill("./config", "yaml")
+	assert.Equal(t, "9583", GetMaxForDateAndTarget("20171031", "taxi.orders.total", config))
+}
 
 func TestRequest(t *testing.T) {
 	config.Fill("./config", "yaml")
@@ -17,9 +22,9 @@ func TestRequest(t *testing.T) {
 
 func TestParseResult(t *testing.T) {
 	config.Fill("./config", "yaml")
-	resp, err := resty.R().Get(config.Url)
+	resp, err := resty.R().Get(fmt.Sprintf(config.Url, "20171031", "taxi.orders.total"))
 	checkErr(err)
-	log.Print(GetMaxDataFromJSON(resp.String()))
+	assert.Equal(t, 9583, GetMaxDataFromJSON(resp.String()))
 }
 
 func TestGetDataDayBefore(t *testing.T) {
