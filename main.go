@@ -13,8 +13,8 @@ import (
 )
 
 type logData struct {
-    Target     string      `json:"target"`
-    Datapoints [][]float64 `json:"datapoints"`
+	Target     string      `json:"target"`
+	Datapoints [][]float64 `json:"datapoints"`
 }
 
 type Config struct {
@@ -23,14 +23,20 @@ type Config struct {
     ChatID int64
 }
 
+var config = Config{}
+
+const (
+	TARGET_ORDERS_TOTAL    = "taxi.orders.total"
+	TARGET_ORDERS_FINISHED = "taxi.orders.finished"
+	TARGET_ORDERS_REJECTED = "taxi.orders.rejected"
+)
+
 func (cs *Config) Fill(configFile string, configExt string) {
     c         := sc.NewSimpleConfig(configFile, configExt)
     cs.Url    = c.GetString("url")
     cs.Token  = c.GetString("token")
     cs.ChatID = int64(c.Get("chatid").(int))
 }
-
-var config = Config{}
 
 func GetDayBeforeInFormat(t time.Time) string {
     return t.AddDate(0, 0, -1).Format("20060102")
@@ -73,10 +79,36 @@ func ConnectTelegramAndSendMessage(message string, config Config) {
 	bot.Send(msg)
 }
 
+func GetRejectPercent(maxTotal string, maxRejected string) string {
+	maxRejectedInt, err := strconv.Atoi(maxRejected)
+	checkErr(err)
+	maxTotalInt, err := strconv.Atoi(maxTotal)
+	checkErr(err)
+	return strconv.Itoa(maxRejectedInt*100/maxTotalInt) + "%"
+}
+
+func CreateMessageForYesterday() string {
+	message := "СТАТИСТИКА ЗА ВЧЕРА: \n"
+
+	maxTotal := GetMaxForDateAndTarget(GetDayBeforeInFormat(time.Now()), TARGET_ORDERS_TOTAL, config)
+	message  += "Всего заказов: " + maxTotal + "\n"
+
+	maxRejected := GetMaxForDateAndTarget(GetDayBeforeInFormat(time.Now()), TARGET_ORDERS_REJECTED, config)
+	message     += "Всего отмененных заказов: " + maxRejected + "\n"
+
+	maxFinished := GetMaxForDateAndTarget(GetDayBeforeInFormat(time.Now()), TARGET_ORDERS_FINISHED, config)
+	message     += "Всего выполненных заказов: " + maxFinished + "\n"
+
+	rejectedPercent := GetRejectPercent(maxTotal, maxRejected)
+	message         += "Процент отмент: " + rejectedPercent
+
+	return message
+}
+
 func main() {
 	config.Fill("./config", "yml")
-	message := GetMaxForDateAndTarget(GetDayBeforeInFormat(time.Now()), "taxi.orders.total", config)
-	ConnectTelegramAndSendMessage("Всего заказов вчера: " + message, config)
+	message := CreateMessageForYesterday()
+	ConnectTelegramAndSendMessage(message, config)
 }
 
 func checkErr(err error) {
