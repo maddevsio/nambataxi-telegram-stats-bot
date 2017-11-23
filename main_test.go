@@ -6,28 +6,12 @@ import (
 	"gopkg.in/resty.v1"
 	"testing"
 	"time"
-	"encoding/json"
-	"log"
 )
 
-type Coord struct {
-	Lat string `json:"lat"`
-	Lng string `json:"lng"`
-}
-
-type Drivers struct {
-	Drivers []Coord `json:"drivers"`
-}
-
 func TestGetFreeCabsNamba(t *testing.T) {
-	url := "https://nambataxi.kg/core/drivers/free/"
-	resp, err := resty.R().Get(url)
-	checkErr(err)
-	var drivers Drivers
-	err = json.Unmarshal([]byte(resp.String()), &drivers)
-	checkErr(err)
-	log.Print(len(drivers.Drivers))
-	assert.NotZero(t, len(drivers.Drivers))
+	config.Fill("./config", "yaml")
+	freeCabs := GetFreeCabsNamba(config)
+	assert.NotZero(t, freeCabs)
 }
 
 func TestSendTelegramMessage(t *testing.T) {

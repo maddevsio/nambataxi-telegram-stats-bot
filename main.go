@@ -24,8 +24,18 @@ type Config struct {
 	Token  string
 	ChatID int64
 
+	FreeCabsNambaUrl	 string
 	TimeForYesterdayData string
 	TimeForDriversData   string
+}
+
+type Coord struct {
+	Lat string `json:"lat"`
+	Lng string `json:"lng"`
+}
+
+type Drivers struct {
+	Drivers []Coord `json:"drivers"`
 }
 
 var config = Config{}
@@ -41,11 +51,21 @@ func (cs *Config) Fill(configFile string, configExt string) {
 	cs.Url = c.GetString("url")
 	cs.Token = c.GetString("token")
 	cs.TimeForYesterdayData = c.GetString("timeforyesterdaydata")
+	cs.FreeCabsNambaUrl = c.GetString("freecabsnambaurl")
 	cs.ChatID = int64(c.Get("chatid").(int))
 }
 
 func GetDayBeforeInFormat(t time.Time) string {
 	return t.AddDate(0, 0, -1).Format("20060102")
+}
+
+func GetFreeCabsNamba(config Config) int {
+	resp, err := resty.R().Get(config.FreeCabsNambaUrl)
+	checkErr(err)
+	var drivers Drivers
+	err = json.Unmarshal([]byte(resp.String()), &drivers)
+	checkErr(err)
+	return len(drivers.Drivers)
 }
 
 func GetMaxForDateAndTarget(date string, target string, config Config) string {
