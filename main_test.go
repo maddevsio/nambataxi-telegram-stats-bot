@@ -2,10 +2,10 @@ package main
 
 import (
 	"fmt"
-	"time"
+	"github.com/stretchr/testify/assert"
 	"gopkg.in/resty.v1"
 	"testing"
-	"github.com/stretchr/testify/assert"
+	"time"
 )
 
 func TestGetMaxForDateAndTarget(t *testing.T) {
@@ -28,7 +28,7 @@ func TestParseResult(t *testing.T) {
 }
 
 func TestGetDataDayBefore(t *testing.T) {
-	timeForTest := time.Date(2017,11,1,0,0,0,0,time.UTC)
+	timeForTest := time.Date(2017, 11, 1, 0, 0, 0, 0, time.UTC)
 	dayBefore := GetDayBeforeInFormat(timeForTest)
 	assert.Equal(t, "20171031", dayBefore)
 }
