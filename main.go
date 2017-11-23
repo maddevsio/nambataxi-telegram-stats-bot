@@ -76,13 +76,20 @@ func GetMaxDataFromJSON(raw string) int {
 	return max
 }
 
-func ConnectTelegramAndSendMessage(message string, config Config) {
+func ConnectTelegramAndSendMessage(message string, config Config) error {
 	bot, err := tgbotapi.NewBotAPI(config.Token)
-	checkErr(err)
-	log.Printf("Authorized on account %s", bot.Self.UserName)
+	if err != nil {
+		return err
+	}
 	bot.Debug = true
-	msg := tgbotapi.NewMessage(config.ChatID, message)
-	bot.Send(msg)
+	log.Printf("Authorized on account %s", bot.Self.UserName)
+
+	msg   := tgbotapi.NewMessage(config.ChatID, message)
+	_, err = bot.Send(msg)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func GetRejectPercent(maxTotal string, maxRejected string) string {

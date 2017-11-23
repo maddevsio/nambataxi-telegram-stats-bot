@@ -8,6 +8,16 @@ import (
 	"time"
 )
 
+func TestSendTelegramMessage(t *testing.T) {
+	config.Fill("./config", "yaml")
+	message := "Test"
+	err := ConnectTelegramAndSendMessage(message, config)
+	assert.NoError(t, err)
+	config.Token = "non existant Telegram token"
+	err = ConnectTelegramAndSendMessage(message, config)
+	assert.Error(t, err)
+}
+
 func TestGetMaxForDateAndTarget(t *testing.T) {
 	config.Fill("./config", "yaml")
 	assert.Equal(t, "9583", GetMaxForDateAndTarget("20171031", "taxi.orders.total", config))
