@@ -4,12 +4,14 @@ import (
 	sc "github.com/maddevsio/simple-config"
 	"gopkg.in/resty.v1"
 	"gopkg.in/telegram-bot-api.v4"
+	"github.com/carlescere/scheduler"
 
 	"log"
 	"time"
 	"encoding/json"
 	"fmt"
 	"strconv"
+	"runtime"
 )
 
 type logData struct {
@@ -21,6 +23,9 @@ type Config struct {
     Url    string
     Token  string
     ChatID int64
+
+	TimeForYesterdayData string
+	TimeForDriversData   string
 }
 
 var config = Config{}
@@ -35,6 +40,7 @@ func (cs *Config) Fill(configFile string, configExt string) {
     c         := sc.NewSimpleConfig(configFile, configExt)
     cs.Url    = c.GetString("url")
     cs.Token  = c.GetString("token")
+    cs.TimeForYesterdayData  = c.GetString("timeforyesterdaydata")
     cs.ChatID = int64(c.Get("chatid").(int))
 }
 
@@ -107,8 +113,13 @@ func CreateMessageForYesterday() string {
 
 func main() {
 	config.Fill("./config", "yml")
-	message := CreateMessageForYesterday()
-	ConnectTelegramAndSendMessage(message, config)
+	log.Printf("scheduler for TFYD: %s", config.TimeForYesterdayData)
+	job := func() {
+		message := CreateMessageForYesterday()
+		ConnectTelegramAndSendMessage(message, config)
+	}
+	scheduler.Every().Day().At(config.TimeForYesterdayData).Run(job)
+	runtime.Goexit()
 }
 
 func checkErr(err error) {
