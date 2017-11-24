@@ -6,34 +6,32 @@ import (
 	"gopkg.in/resty.v1"
 	"testing"
 	"time"
-	"io/ioutil"
 	"os"
-	"os/exec"
 )
 
-func exe(cmdName string, cmdArgs []string) string {
-	var cmdOut []byte
-	var	err    error
-	if cmdOut, err = exec.Command(cmdName, cmdArgs...).Output(); err != nil {
-		fmt.Printf("git %v error %v", cmdArgs, err)
-		os.Exit(1)
-	}
-	return string(cmdOut)
-}
-
 func TestGetPicAboutCabs(t *testing.T) {
-	validPngInfo := "/tmp/drivers.png: PNG image data, 586 x 308, 8-bit/color RGB, non-interlaced\n"
+	path := "/tmp/driversTestGetPicAboutCabs.png"
+	_ = os.Remove(path)
+	validPngInfo := path + ": PNG image data, 586 x 308, 8-bit/color RGB, non-interlaced\n"
 	config.Fill("./config", "yaml")
 	date := GetDayBeforeInFormat(time.Now())
-	target1 := "taxi.drivers.free"
-	target2 := "taxi.drivers.total"
-	url := fmt.Sprintf(config.PicUrl, date, date, target1, target2)
-	resp, err := resty.R().Get(url)
-	checkErr(err)
-	err = ioutil.WriteFile("/tmp/drivers.png", resp.Body(), 0644)
-	checkErr(err)
-	imgInfo := exe("file", []string{"/tmp/drivers.png"})
+	err := GetPicAboutCabs(date, path, config)
+	assert.NoError(t, err)
+	imgInfo := exe("file", []string{path})
 	assert.Equal(t, validPngInfo, imgInfo)
+	err = os.Remove(path)
+	assert.NoError(t, err)
+}
+
+func TestSendPicToTelegramChat(t *testing.T) {
+	config.Fill("./config", "yaml")
+	path := "/tmp/driversTestSendPicToTelegramChat.png"
+	_ = os.Remove(path)
+	date := GetDayBeforeInFormat(time.Now())
+	err := GetPicAboutCabs(date, path, config)
+	assert.NoError(t, err)
+	err = ConnectTelegramAndSendPic(path, "Распределение машин за вчера", config)
+	assert.NoError(t, err)
 }
 
 func TestGetFreeCabsNamba(t *testing.T) {

@@ -6,6 +6,9 @@ import (
 	"gopkg.in/resty.v1"
 	"gopkg.in/telegram-bot-api.v4"
 
+	"io/ioutil"
+	"os"
+	"os/exec"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -45,6 +48,8 @@ const (
 	TARGET_ORDERS_TOTAL    = "taxi.orders.total"
 	TARGET_ORDERS_FINISHED = "taxi.orders.finished"
 	TARGET_ORDERS_REJECTED = "taxi.orders.rejected"
+	TARGET_DRIVERS_FREE    = "taxi.drivers.free"
+	TARGET_DRIVERS_TOTAL   = "taxi.drivers.total"
 )
 
 func (cs *Config) Fill(configFile string, configExt string) {
@@ -68,6 +73,19 @@ func GetFreeCabsNamba(config Config) int {
 	err = json.Unmarshal([]byte(resp.String()), &drivers)
 	checkErr(err)
 	return len(drivers.Drivers)
+}
+
+func GetPicAboutCabs(date string, path string, config Config) error {
+	url := fmt.Sprintf(config.PicUrl, date, date, TARGET_DRIVERS_FREE, TARGET_DRIVERS_TOTAL)
+	resp, err := resty.R().Get(url)
+	if err != nil {
+		return err
+	}
+	err = ioutil.WriteFile(path, resp.Body(), 0644)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func GetMaxForDateAndTarget(date string, target string, config Config) string {
@@ -96,6 +114,24 @@ func GetMaxDataFromJSON(raw string) int {
 		}
 	}
 	return max
+}
+
+func ConnectTelegramAndSendPic(path string, caption string, config Config) error {
+	bot, err := tgbotapi.NewBotAPI(config.Token)
+	if err != nil {
+		return err
+	}
+	bot.Debug = true
+	log.Printf("Authorized on account %s", bot.Self)
+
+	msg := tgbotapi.NewPhotoUpload(config.ChatID, path)
+	msg.Caption = caption
+	_, err = bot.Send(msg)
+	if err != nil {
+		return err
+	}
+	return nil
+
 }
 
 func ConnectTelegramAndSendMessage(message string, config Config) error {
@@ -158,6 +194,16 @@ func main() {
 	}
 	scheduler.Every().Day().At(config.TimeForYesterdayData).Run(job)
 	runtime.Goexit()
+}
+
+func exe(cmdName string, cmdArgs []string) string {
+	var cmdOut []byte
+	var	err    error
+	if cmdOut, err = exec.Command(cmdName, cmdArgs...).Output(); err != nil {
+		fmt.Printf("git %v error %v", cmdArgs, err)
+		os.Exit(1)
+	}
+	return string(cmdOut)
 }
 
 func checkErr(err error) {
