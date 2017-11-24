@@ -182,8 +182,14 @@ func CreateMessageForFreeCabs(config Config) string {
 }
 
 func SendFullInfo(config Config) {
-	message := CreateMessageForYesterday() + "\n\n" + CreateMessageForFreeCabs(config)
-	ConnectTelegramAndSendMessage(message, config)
+	path    := "/tmp/drivers.png"
+	orders  := CreateMessageForYesterday()
+	cabs    := CreateMessageForFreeCabs(config)
+	date    := GetDayBeforeInFormat(time.Now())
+	ConnectTelegramAndSendMessage(orders, config)
+	checkErr(GetPicAboutCabs(date, path, config))
+	ConnectTelegramAndSendPic(path, "Распределение машин за вчера", config)
+	ConnectTelegramAndSendMessage(cabs, config)
 }
 
 func main() {
