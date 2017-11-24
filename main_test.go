@@ -6,7 +6,35 @@ import (
 	"gopkg.in/resty.v1"
 	"testing"
 	"time"
+	"io/ioutil"
+	"os"
+	"os/exec"
 )
+
+func exe(cmdName string, cmdArgs []string) string {
+	var cmdOut []byte
+	var	err    error
+	if cmdOut, err = exec.Command(cmdName, cmdArgs...).Output(); err != nil {
+		fmt.Printf("git %v error %v", cmdArgs, err)
+		os.Exit(1)
+	}
+	return string(cmdOut)
+}
+
+func TestGetPicAboutCabs(t *testing.T) {
+	validPngInfo := "/tmp/drivers.png: PNG image data, 586 x 308, 8-bit/color RGB, non-interlaced\n"
+	config.Fill("./config", "yaml")
+	date := GetDayBeforeInFormat(time.Now())
+	target1 := "taxi.drivers.free"
+	target2 := "taxi.drivers.total"
+	url := fmt.Sprintf(config.PicUrl, date, date, target1, target2)
+	resp, err := resty.R().Get(url)
+	checkErr(err)
+	err = ioutil.WriteFile("/tmp/drivers.png", resp.Body(), 0644)
+	checkErr(err)
+	imgInfo := exe("file", []string{"/tmp/drivers.png"})
+	assert.Equal(t, validPngInfo, imgInfo)
+}
 
 func TestGetFreeCabsNamba(t *testing.T) {
 	config.Fill("./config", "yaml")

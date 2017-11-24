@@ -23,6 +23,7 @@ type Config struct {
 	Url    string
 	Token  string
 	ChatID int64
+	PicUrl string
 
 	FreeCabsNambaUrl	 string
 	TimeForYesterdayData string
@@ -48,11 +49,12 @@ const (
 
 func (cs *Config) Fill(configFile string, configExt string) {
 	c := sc.NewSimpleConfig(configFile, configExt)
-	cs.Url = c.GetString("url")
-	cs.Token = c.GetString("token")
-	cs.TimeForYesterdayData = c.GetString("timeforyesterdaydata")
-	cs.FreeCabsNambaUrl = c.GetString("freecabsnambaurl")
+	cs.Url    = c.GetString("url")
+	cs.PicUrl = c.GetString("picurl")
+	cs.Token  = c.GetString("token")
 	cs.ChatID = int64(c.Get("chatid").(int))
+	cs.TimeForYesterdayData = c.GetString("timeforyesterdaydata")
+	cs.FreeCabsNambaUrl     = c.GetString("freecabsnambaurl")
 }
 
 func GetDayBeforeInFormat(t time.Time) string {
