@@ -138,12 +138,21 @@ func CreateMessageForYesterday() string {
 	return message
 }
 
+func CreateMessageForFreeCabs(config Config) string {
+	message := "На текущий момент свободных машин: " + strconv.Itoa(GetFreeCabsNamba(config)) + " 🚕"
+	return message
+}
+
+func SendFullInfo(config Config) {
+	message := CreateMessageForYesterday() + "\n\n" + CreateMessageForFreeCabs(config)
+	ConnectTelegramAndSendMessage(message, config)
+}
+
 func main() {
 	config.Fill("./config", "yml")
 	log.Printf("scheduler for TFYD: %s", config.TimeForYesterdayData)
 	job := func() {
-		message := CreateMessageForYesterday()
-		ConnectTelegramAndSendMessage(message, config)
+		SendFullInfo(config)
 	}
 	scheduler.Every().Day().At(config.TimeForYesterdayData).Run(job)
 	runtime.Goexit()

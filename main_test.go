@@ -14,6 +14,11 @@ func TestGetFreeCabsNamba(t *testing.T) {
 	assert.NotZero(t, freeCabs)
 }
 
+func TestSendFullInfo(t *testing.T) {
+	config.Fill("./config", "yaml")
+	SendFullInfo(config)
+}
+
 func TestSendTelegramMessage(t *testing.T) {
 	config.Fill("./config", "yaml")
 	message := "Test"
