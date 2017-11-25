@@ -67,11 +67,18 @@ func TestRequest(t *testing.T) {
 	assert.Equal(t, "200 OK", resp.Status())
 }
 
-func TestParseResult(t *testing.T) {
+func TestParseResultOrders(t *testing.T) {
 	config.Fill("./config", "yaml")
 	resp, err := resty.R().Get(fmt.Sprintf(config.Url, "20171031", "taxi.orders.total"))
 	checkErr(err)
 	assert.Equal(t, 9583, GetMaxDataFromJSON(resp.String()))
+}
+
+func TestParseResultOrdersComfort(t *testing.T) {
+	config.Fill("./config", "yaml")
+	resp, err := resty.R().Get(fmt.Sprintf(config.Url, "20171124", "taxi.orders_comfort.total"))
+	checkErr(err)
+	assert.Equal(t, 308, GetMaxDataFromJSON(resp.String()))
 }
 
 func TestGetDataDayBefore(t *testing.T) {

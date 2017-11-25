@@ -48,6 +48,11 @@ const (
 	TARGET_ORDERS_TOTAL    = "taxi.orders.total"
 	TARGET_ORDERS_FINISHED = "taxi.orders.finished"
 	TARGET_ORDERS_REJECTED = "taxi.orders.rejected"
+
+	TARGET_ORDERS_COMFORT_TOTAL    = "taxi.orders_comfort.total"
+	TARGET_ORDERS_COMFORT_FINISHED = "taxi.orders_comfort.finished"
+	TARGET_ORDERS_COMFORT_REJECTED = "taxi.orders_comfort.rejected"
+
 	TARGET_DRIVERS_FREE    = "taxi.drivers.free"
 	TARGET_DRIVERS_TOTAL   = "taxi.drivers.total"
 )
@@ -158,21 +163,37 @@ func GetRejectPercent(maxTotal string, maxRejected string) string {
 	return strconv.Itoa(maxRejectedInt*100/maxTotalInt) + "%"
 }
 
-func CreateMessageForYesterday() string {
-	message := "СТАТИСТИКА ЗА ВЧЕРА: \n"
+func CreateMessageForOrders(targets [3]string) string {
+	var message string
 
-	maxTotal := GetMaxForDateAndTarget(GetDayBeforeInFormat(time.Now()), TARGET_ORDERS_TOTAL, config)
+	maxTotal := GetMaxForDateAndTarget(GetDayBeforeInFormat(time.Now()), targets[0], config)
 	message += "Всего заказов: " + maxTotal + "\n"
 
-	maxRejected := GetMaxForDateAndTarget(GetDayBeforeInFormat(time.Now()), TARGET_ORDERS_REJECTED, config)
-	message += "Всего отмененных заказов: " + maxRejected + "\n"
-
-	maxFinished := GetMaxForDateAndTarget(GetDayBeforeInFormat(time.Now()), TARGET_ORDERS_FINISHED, config)
+	maxFinished := GetMaxForDateAndTarget(GetDayBeforeInFormat(time.Now()), targets[1], config)
 	message += "Всего выполненных заказов: " + maxFinished + "\n"
+
+	maxRejected := GetMaxForDateAndTarget(GetDayBeforeInFormat(time.Now()),	targets[2], config)
+	message += "Всего отмененных заказов: " + maxRejected + "\n"
 
 	rejectedPercent := GetRejectPercent(maxTotal, maxRejected)
 	message += "Процент отмент: " + rejectedPercent
 
+	return message
+}
+
+func CreateMessageForYesterday() string {
+	message := "СТАТИСТИКА ПО ВСЕМ ЗАКАЗАМ ЗА ВЧЕРА: \n"
+	message += CreateMessageForOrders([3]string{
+			TARGET_ORDERS_TOTAL, 
+			TARGET_ORDERS_FINISHED, 
+			TARGET_ORDERS_REJECTED})
+
+	message += "\n \n"
+	message += "СТАТИСТИКА ПО КОМФОРТНЫМ ЗАКАЗАМ ЗА ВЧЕРА: \n"
+	message += CreateMessageForOrders([3]string{
+			TARGET_ORDERS_COMFORT_TOTAL, 
+			TARGET_ORDERS_COMFORT_FINISHED, 
+			TARGET_ORDERS_COMFORT_REJECTED})
 	return message
 }
 
