@@ -29,6 +29,7 @@ type Config struct {
 	PicUrl string
 
 	FreeCabsNambaUrl	 string
+	AllCabsNambaUrl		 string
 	TimeForYesterdayData string
 	TimeForDriversData   string
 }
@@ -65,6 +66,7 @@ func (cs *Config) Fill(configFile string, configExt string) {
 	cs.ChatID = int64(c.Get("chatid").(int))
 	cs.TimeForYesterdayData = c.GetString("timeforyesterdaydata")
 	cs.FreeCabsNambaUrl     = c.GetString("freecabsnambaurl")
+	cs.AllCabsNambaUrl      = c.GetString("allcabsnambaurl")
 }
 
 func GetDayBeforeInFormat(t time.Time) string {
@@ -73,6 +75,15 @@ func GetDayBeforeInFormat(t time.Time) string {
 
 func GetFreeCabsNamba(config Config) int {
 	resp, err := resty.R().Get(config.FreeCabsNambaUrl)
+	checkErr(err)
+	var drivers Drivers
+	err = json.Unmarshal([]byte(resp.String()), &drivers)
+	checkErr(err)
+	return len(drivers.Drivers)
+}
+
+func GetAllCabsNamba(config Config) int {
+	resp, err := resty.R().Get(config.AllCabsNambaUrl)
 	checkErr(err)
 	var drivers Drivers
 	err = json.Unmarshal([]byte(resp.String()), &drivers)
@@ -197,15 +208,17 @@ func CreateMessageForYesterday() string {
 	return message
 }
 
-func CreateMessageForFreeCabs(config Config) string {
-	message := "На текущий момент свободных машин: " + strconv.Itoa(GetFreeCabsNamba(config)) + " 🚕"
+func CreateMessageForCabs(config Config) string {
+	message := "На текущий момент"
+	message += "\n* свободных машин: " + strconv.Itoa(GetFreeCabsNamba(config)) + " 🆓"
+	message += "\n* всего машин: " + strconv.Itoa(GetAllCabsNamba(config)) + " 🚕"
 	return message
 }
 
 func SendFullInfo(config Config) {
 	path    := "/tmp/drivers.png"
 	orders  := CreateMessageForYesterday()
-	cabs    := CreateMessageForFreeCabs(config)
+	cabs    := CreateMessageForCabs(config)
 	date    := GetDayBeforeInFormat(time.Now())
 	ConnectTelegramAndSendMessage(orders, config)
 	checkErr(GetPicAboutCabs(date, path, config))

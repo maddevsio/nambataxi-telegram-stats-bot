@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/resty.v1"
 	"testing"
@@ -37,7 +38,15 @@ func TestSendPicToTelegramChat(t *testing.T) {
 func TestGetFreeCabsNamba(t *testing.T) {
 	config.Fill("./config", "yaml")
 	freeCabs := GetFreeCabsNamba(config)
+	log.Print(freeCabs)
 	assert.NotZero(t, freeCabs)
+}
+
+func TestGetAllCabsNamba(t *testing.T) {
+	config.Fill("./config", "yaml")
+	allCabs := GetAllCabsNamba(config)
+	log.Print(allCabs)
+	assert.NotZero(t, allCabs)
 }
 
 func TestSendFullInfo(t *testing.T) {
