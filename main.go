@@ -31,6 +31,7 @@ type Config struct {
 	FreeCabsNambaUrl	 string
 	AllCabsNambaUrl		 string
 	TimeForYesterdayData string
+	TimeForEveningCabs	 string
 	TimeForDriversData   string
 }
 
@@ -65,6 +66,7 @@ func (cs *Config) Fill(configFile string, configExt string) {
 	cs.Token  = c.GetString("token")
 	cs.ChatID = int64(c.Get("chatid").(int))
 	cs.TimeForYesterdayData = c.GetString("timeforyesterdaydata")
+	cs.TimeForEveningCabs	= c.GetString("timeforeveningcabs")
 	cs.FreeCabsNambaUrl     = c.GetString("freecabsnambaurl")
 	cs.AllCabsNambaUrl      = c.GetString("allcabsnambaurl")
 }
@@ -226,13 +228,27 @@ func SendFullInfo(config Config) {
 	ConnectTelegramAndSendMessage(cabs, config)
 }
 
+func SendCabsInfo(config Config) {
+	cabs := CreateMessageForCabs(config)
+	ConnectTelegramAndSendMessage(cabs, config)
+}
+
 func main() {
 	config.Fill("./config", "yml")
 	log.Printf("scheduler for TFYD: %s", config.TimeForYesterdayData)
-	job := func() {
+	log.Printf("scheduler for TFEC: %s", config.TimeForEveningCabs)
+	jobMorning := func() {
+		log.Print("morning\n")
 		SendFullInfo(config)
 	}
-	scheduler.Every().Day().At(config.TimeForYesterdayData).Run(job)
+	jobEvening := func() {
+		log.Print("evening\n")
+		SendCabsInfo(config)
+	}
+	_, err := scheduler.Every().Day().At(config.TimeForYesterdayData).Run(jobMorning)
+	checkErr(err)
+	_, err = scheduler.Every().Day().At(config.TimeForEveningCabs).Run(jobEvening)
+	checkErr(err)
 	runtime.Goexit()
 }
 
